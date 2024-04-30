@@ -23,7 +23,7 @@ class Nodo{
     }
 };
 
-class entry{
+class Entry{
     public:
     Point centro;
     double radio;
