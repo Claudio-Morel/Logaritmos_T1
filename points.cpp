@@ -1,18 +1,10 @@
 #include <iostream>
 #include <random>
 #include <set>
+#include "structures.cpp"
 using namespace std;
 
-struct Point {
-    double x;
-    double y;
 
-    bool operator<(const Point& other) const {
-        if (x < other.x) return true;
-        if (x > other.x) return false;
-        return y < other.y;
-    }
-};
 
 set<Point> generatePoints(unsigned long long n) {
     set <Point> points;
