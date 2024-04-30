@@ -1,10 +1,14 @@
-#include <iostream>
 #include <random>
 #include <set>
-#include "structures.cpp"
+#include "structures.h"
 using namespace std;
+#include "structures.h"
 
-
+bool Point::operator<(const Point& other) const{
+        if (x < other.x) return true;
+        if (x > other.x) return false;
+        return y < other.y;
+};
 
 set<Point> generatePoints(unsigned long long n) {
     set <Point> points;
@@ -20,10 +24,4 @@ set<Point> generatePoints(unsigned long long n) {
     }
 
     return points;
-}
-
-int main() {
-    int n =25;
-    set<Point> points = generatePoints(pow(2,n));
-    return 0;
 }
