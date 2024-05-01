@@ -5,6 +5,7 @@ using namespace std;
 #define STRUCTURES_H
 
 class Nodo; 
+class Mtree;
 
 class Point{
     public:
@@ -18,7 +19,7 @@ class Entry{
     public:
     Point centro;
     double radio;
-    Nodo *hijos;
+    Mtree *hijos;
 };
 
 class Nodo{

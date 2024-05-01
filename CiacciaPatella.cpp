@@ -3,21 +3,23 @@
 #include "points.cpp"
 #include <algorithm>
 using namespace std;
+#include<tuple>
 
 #define B 4096
 
-int checkDistance(Point point, vector<Point> sample){
+tuple<int,double> checkDistance(Point point, vector<Point> samples){
     double dist;
     double minDist = 1;
     int index;
-    for (int i  = 0; i<sample.size(); i++){
-        dist = pow(point.x - sample[i].x, 2) + pow(point.y - sample[i].y, 2);
+    for (int i  = 0; i<samples.size(); i++){
+        dist = pow(point.x - samples[i].x, 2) + pow(point.y - samples[i].y, 2);
         if(dist < minDist){
             minDist = dist;
             index = i;
         }
     }
-    return index;
+    tuple<int,double> tupla (index,minDist);
+    return tupla;
 }
 
 
@@ -38,26 +40,27 @@ Mtree Ciaccia_Patella(vector<Point> points){
         return mtree;
     }
     else{
+        cout << "CEIL: " << ceil((n/(double)B))<< endl;
+        long long k = min((long long)B, (long long)ceil((n/(double)B)));
+        vector <vector <Point>> clusters(k);
+        vector<Point> samples;
+        vector<double> distancia_max(k,0);
         while(true){
-            long long k = min((long long)B, (long long)(n/B));
-            cout << "k: " << k << endl;
-            vector<Point> sample;
-            vector <vector <Point>> clusters;
             uniform_int_distribution<> dis(0, n-1);
             for (int i = 0; i<k; i++){
                 unsigned long long indice = dis(gen);
-                sample.push_back(points[indice]);
+                samples.push_back(points[indice]);
                 points.erase(points.begin() + indice);
                 n--;
             }
-            clusters.resize(k);
-            cout << sample.size() << endl;
-            cout << clusters.size() << endl;
             for (Point point : points){
-                int index = checkDistance(point, sample);
+                tuple<int,double> tup = checkDistance(point, samples);
+                int index = get<0>(tup);
                 clusters[index].push_back(point);
+                if(distancia_max[index]< get<1>(tup)){
+                    distancia_max[index] = get<1>(tup);
+                }
             }
-            cout << clusters.size() << endl;
             vector<int> toErase;
             for (int i = 0; i<clusters.size(); i++){
                 if (clusters[i].size() < B/2){
@@ -66,25 +69,39 @@ Mtree Ciaccia_Patella(vector<Point> points){
             }
             for (int i = 0; i<toErase.size(); i++){
                 vector<Point> rearrangePoints = clusters[toErase[i]];
-                points.push_back(sample[toErase[i]]);
+                points.push_back(samples[toErase[i]]);
                 clusters.erase(clusters.begin() + toErase[i]);
-                sample.erase(sample.begin() + toErase[i]);
+                samples.erase(samples.begin() + toErase[i]);
                 n++;
                 for (Point point : rearrangePoints){
-                    int index = checkDistance(point, sample);
+                    tuple<int,double> tup = checkDistance(point, samples);
+                    int index = get<0>(tup);
                     clusters[index].push_back(point);
+                    if(distancia_max[index]< get<1>(tup)){
+                        distancia_max[index] = get<1>(tup);
+                    }
                 }
             }
             if (clusters.size() > 1){
+                //Agregar denuevo a puntos los ptos del cluster
+                for(Point point : clusters[0]){
+                    points.push_back(point);
+                }
                 break;
             }
+        }
+        for(int i = 0; i< samples.size();i++){
+            Entry entrada = Entry{samples[i],distancia_max[i]};
+            Mtree hijo = Ciaccia_Patella(clusters[i]);
+            entrada.hijos = &hijo;
+            mtree.raiz.entradas.push_back(entrada);
         }
         return mtree;
     }
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 25));
+    set<Point> points = generatePoints(pow(2, 14));
     vector<Point> v(points.begin(), points.end());
     Mtree mtree = Ciaccia_Patella(v);
     return 0;
