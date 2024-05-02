@@ -4,6 +4,7 @@
 #include <algorithm>
 using namespace std;
 #include<tuple>
+#include <chrono>
 
 #define B 4096
 
@@ -26,7 +27,8 @@ tuple<int,double> checkDistance(Point point, vector<Point> samples){
 Mtree Ciaccia_Patella(vector<Point> points){
     unsigned long long n = points.size();
     random_device rd;
-    mt19937 gen(rd());
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    mt19937 gen(seed);
     Mtree mtree;
     if(n <= B){
         Entry entry;
@@ -40,19 +42,21 @@ Mtree Ciaccia_Patella(vector<Point> points){
         return mtree;
     }
     else{
-        cout << "CEIL: " << ceil((n/(double)B))<< endl;
+        //Calculamos k
         long long k = min((long long)B, (long long)ceil((n/(double)B)));
-        vector <vector <Point>> clusters(k);
+        vector <vector <Point>> clusters(k); 
         vector<Point> samples;
         vector<double> distancia_max(k,0);
         while(true){
             uniform_int_distribution<> dis(0, n-1);
+            // Elegimos k puntos random y los agregamos a samples.
             for (int i = 0; i<k; i++){
                 unsigned long long indice = dis(gen);
                 samples.push_back(points[indice]);
                 points.erase(points.begin() + indice);
                 n--;
             }
+            // Asociamos todos los puntos a su sample más cercano.
             for (Point point : points){
                 tuple<int,double> tup = checkDistance(point, samples);
                 int index = get<0>(tup);
@@ -61,15 +65,18 @@ Mtree Ciaccia_Patella(vector<Point> points){
                     distancia_max[index] = get<1>(tup);
                 }
             }
+            //Inicializamos vector para guardar los elementos a borrar.
             vector<int> toErase;
+            //Revisamos si los debemos borrar
             for (int i = 0; i<clusters.size(); i++){
                 if (clusters[i].size() < B/2){
                     toErase.push_back(i);
                 }
             }
-            for (int i = 0; i<toErase.size(); i++){
+            //Los borramos y reasignamos los puntos.
+            for (int i = toErase.size()-1; i>=0; i--){                
                 vector<Point> rearrangePoints = clusters[toErase[i]];
-                points.push_back(samples[toErase[i]]);
+                rearrangePoints.push_back(samples[toErase[i]]);
                 clusters.erase(clusters.begin() + toErase[i]);
                 samples.erase(samples.begin() + toErase[i]);
                 n++;
@@ -82,28 +89,44 @@ Mtree Ciaccia_Patella(vector<Point> points){
                     }
                 }
             }
+            //Revisamos si es que hay solo un cluster, si es así, repetimos el while
+            // si no, se deja de iterar.
             if (clusters.size() > 1){
-                //Agregar denuevo a puntos los ptos del cluster
-                for(Point point : clusters[0]){
+                break;
+            }else {
+                for(Point point: samples){
                     points.push_back(point);
                 }
-                break;
+                samples.clear();
+                toErase.clear();
+                clusters.resize(k);
+                for(int i =0; i<k; i++){
+                    clusters[i].clear();
+                }
             }
         }
+        // (Paso 6)
+        // Vamos calculando recursivamente, asignando los arboles.
+        unsigned long long n_total = 0;
+        cout << "k es :" << k <<" samples es :" <<samples.size()<< endl;
         for(int i = 0; i< samples.size();i++){
+            n_total += (1+ clusters[i].size());
+            cout << "RECURSIVO CTM " <<clusters[i].size() << endl;
             Entry entrada = Entry{samples[i],distancia_max[i]};
             Mtree hijo = Ciaccia_Patella(clusters[i]);
             entrada.hijos = &hijo;
             mtree.raiz.entradas.push_back(entrada);
         }
+        cout << n_total<< endl;
         return mtree;
     }
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 14));
+    set<Point> points = generatePoints(pow(2, 18));
     vector<Point> v(points.begin(), points.end());
     Mtree mtree = Ciaccia_Patella(v);
     return 0;
 }
 
+// Al agregar puntos al cluster, no los borramos.
