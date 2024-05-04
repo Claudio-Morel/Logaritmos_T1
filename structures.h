@@ -11,8 +11,11 @@ class Point{
     public:
     double x;
     double y;
+    double norma = -1;
 
     bool operator<(const Point& other) const;
+
+    double distance(Point& other);
 };
 
 class Entry{
@@ -39,6 +42,20 @@ class Mtree {
     unsigned long long n;
     Nodo raiz;
     int altura = 1;
+};
+
+class Cluster {
+    public:
+    Point medoide;
+    vector<Point> puntos;
+    double radio;
+    unsigned long long elementos = 0;
+
+    Cluster(Point p);
+
+    Cluster();
+
+    void insertar(Point p);
 };
 
 #endif

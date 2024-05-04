@@ -170,7 +170,7 @@ Mtree Ciaccia_Patella(vector<Point> points){
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 17));
+    set<Point> points = generatePoints(pow(2, 19));
     cout << sizeof(Point)<< endl;
     vector<Point> v(points.begin(), points.end());
     Mtree mtree = Ciaccia_Patella(v);
