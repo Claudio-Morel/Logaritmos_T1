@@ -7,6 +7,7 @@ using namespace std;
 #include <chrono>
 
 #define B 4096
+#define h 1
 
 tuple<int,double> checkDistance(Point point, vector<Point> samples){
     double dist;
@@ -39,6 +40,7 @@ Mtree Ciaccia_Patella(vector<Point> points){
             nodo.insertar(entry);
         }
         mtree.raiz = nodo;
+        mtree.altura = 1;
         return mtree;
     }
     else{
@@ -107,26 +109,70 @@ Mtree Ciaccia_Patella(vector<Point> points){
         }
         // (Paso 6)
         // Vamos calculando recursivamente, asignando los arboles.
-        unsigned long long n_total = 0;
-        cout << "k es :" << k <<" samples es :" <<samples.size()<< endl;
+        // Para cada Fj
+        vector<Mtree> Tprima;
         for(int i = 0; i< samples.size();i++){
-            n_total += (1+ clusters[i].size());
-            cout << "RECURSIVO CTM " <<clusters[i].size() << endl;
-            Entry entrada = Entry{samples[i],distancia_max[i]};
+            //Arbol Tj
             Mtree hijo = Ciaccia_Patella(clusters[i]);
-            entrada.hijos = &hijo;
-            mtree.raiz.entradas.push_back(entrada);
+            //Paso 8
+            // Paso 9
+            if((hijo).altura == h){
+                Tprima.push_back(mtree);
+            }else{
+                //Borrar el punto de F.
+                vector<int> Posiciones;
+                samples.erase(samples.begin()+i);
+                Nodo raiz = hijo.raiz;
+                vector<Entry> entrys = raiz.entradas;
+                // Para Cada Tj
+                for(int i = 0; i< entrys.size();i++){
+                    //Si el hijo tiene altura H lo agrego a T prima
+                    Mtree *hijo_2 =  entrys[i].hijos;
+                    int altura_hijo = 1;//hijo_2->altura;
+                    if(altura_hijo == h){
+                        Tprima.push_back(*hijo_2);
+                        Posiciones.push_back(i);
+                    }
+                
+                }
+                for(int i = 0; i< Posiciones.size(); i++){
+                int posicion = Posiciones[i]; 
+                vector<Entry> entrada_m = Tprima[i].raiz.entradas;
+                //Insertar pf1 prima en F
+                samples.push_back(entrys[i].centro);
+                mtree.raiz.entradas.erase(mtree.raiz.entradas.begin()+i);
+                }
+            }
         }
-        cout << n_total<< endl;
+
+        // PASO 7!!!!!!
+        if(samples.size() < B/2 ){
+            //Quitamos raiz.
+
+        }
+
+        //Paso 10!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        Mtree Tsup = Ciaccia_Patella(samples);
+        //Paso 11
+        for(int i = 0; i<Tprima.size();i++){
+            cout << Tprima.size() << endl;
+            Entry entrada =Tsup.raiz.entradas[i];
+            entrada.hijos = &Tprima[i];
+        }
+        //Paso 12.
+        //SETEAR RADIOS!
+
         return mtree;
+
+        
+
     }
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 18));
+    set<Point> points = generatePoints(pow(2, 17));
+    cout << sizeof(Point)<< endl;
     vector<Point> v(points.begin(), points.end());
     Mtree mtree = Ciaccia_Patella(v);
     return 0;
 }
-
-// Al agregar puntos al cluster, no los borramos.

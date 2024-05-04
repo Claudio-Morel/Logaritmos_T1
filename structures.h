@@ -38,6 +38,7 @@ class Mtree {
     public:
     unsigned long long n;
     Nodo raiz;
+    int altura = 1;
 };
 
 #endif
