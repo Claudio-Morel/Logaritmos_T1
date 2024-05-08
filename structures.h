@@ -22,7 +22,7 @@ class Entry{
     public:
     Point centro;
     double radio;
-    Mtree *hijos;
+    Nodo *hijos;
 };
 
 class Nodo{
@@ -40,7 +40,7 @@ class Nodo{
 class Mtree {
     public:
     unsigned long long n;
-    Nodo raiz;
+    Nodo *raiz;
     int altura = 1;
 };
 
@@ -49,13 +49,22 @@ class Cluster {
     Point medoide;
     vector<Point> puntos;
     double radio;
-    unsigned long long elementos = 0;
+    unsigned long long count = 0;
 
     Cluster(Point p);
 
     Cluster();
 
     void insertar(Point p);
+
+    void actualizarMedoide();
+};
+
+class Query{
+    public:
+    Point punto;
+    double radio;
+    vector <Point> resultado;
 };
 
 #endif
