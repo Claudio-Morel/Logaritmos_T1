@@ -5,6 +5,7 @@
 using namespace std;
 #include<tuple>
 #include <chrono>
+#include <queue>
 
 int B = 4096/sizeof(Entry);
 #define h 1
@@ -25,11 +26,43 @@ tuple<int,double> checkDistance(Point point, vector<Point> samples){
 }
 
 
+void Link(Nodo *T, Nodo *Tsup) {
+    Point punto = T->entradas[0].centro;
+    double MinDist = 2;
+    Entry* hoja_min = nullptr; // Inicializar a nullptr
+
+    queue<Nodo *> q;
+    q.push(Tsup);
+    while (!q.empty()) {
+        Nodo* nodo = q.front();
+        q.pop();
+        vector<Entry>& entradas = nodo->entradas; // Utilizar referencia para evitar copias
+        for (Entry& entrada : entradas) { // Utilizar referencia para modificar objetos en el vector
+            if (entrada.hijos != nullptr) {
+                q.push(entrada.hijos);
+            }
+            else {
+                double dist = punto.distance(entrada.centro);
+                if (dist < MinDist) {
+                    MinDist = dist;
+                    hoja_min = &entrada; // Asignar la referencia al nodo más cercano
+                }
+            }
+        }
+    }
+    
+    // Asignar T como hijo de hoja_min solo si hoja_min no es nullptr
+    if (hoja_min != nullptr) {
+        hoja_min->hijos = T;
+    }
+}
+
 Nodo* Ciaccia_Patella(vector<Point> points){
     unsigned long long n = points.size();
     random_device rd;
     unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     mt19937 gen(seed);
+    cout << "Paso 0" << endl;
     Nodo *nodo = new Nodo();
     if(n <= B){
         Entry entry;
@@ -41,6 +74,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
         return nodo;
     }
     else{
+        cout << "Paso 2 "<< endl;
         //Calculamos k
         long long k = min((long long)B, (long long)ceil((n/(double)B)));
         vector <vector <Point>> clusters(k); 
@@ -49,12 +83,13 @@ Nodo* Ciaccia_Patella(vector<Point> points){
         while(true){
             uniform_int_distribution<> dis(0, n-1);
             // Elegimos k puntos random y los agregamos a samples.
+            cout << "Paso 2.1" << endl;
             for (int i = 0; i<k; i++){
                 unsigned long long indice = dis(gen);
                 samples.push_back(points[indice]);
-                n--;
             }
             // Asociamos todos los puntos a su sample más cercano.
+            cout << "Paso 3" << endl;
             for (Point point : points){
                 tuple<int,double> tup = checkDistance(point, samples);
                 int index = get<0>(tup);
@@ -65,6 +100,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
             }
             //Inicializamos vector para guardar los elementos a borrar.
             vector<int> toErase;
+            cout << "Paso 4.1" << endl;
             //Revisamos si los debemos borrar
             for (int i = 0; i<clusters.size(); i++){
                 if (clusters[i].size() < B/2){
@@ -72,12 +108,12 @@ Nodo* Ciaccia_Patella(vector<Point> points){
                 }
             }
             //Los borramos y reasignamos los puntos.
+            cout << "Paso 4.2" << endl;
             for (int i = toErase.size()-1; i>=0; i--){                
                 vector<Point> rearrangePoints = clusters[toErase[i]];
                 rearrangePoints.push_back(samples[toErase[i]]);
                 clusters.erase(clusters.begin() + toErase[i]);
                 samples.erase(samples.begin() + toErase[i]);
-                n++;
                 for (Point point : rearrangePoints){
                     tuple<int,double> tup = checkDistance(point, samples);
                     int index = get<0>(tup);
@@ -90,8 +126,10 @@ Nodo* Ciaccia_Patella(vector<Point> points){
             //Revisamos si es que hay solo un cluster, si es así, repetimos el while
             // si no, se deja de iterar.
             if (clusters.size() > 1){
+                cout << "Paso 5.1" << endl;
                 break;
             }else {
+                cout << "Paso 5.2" << endl;
                 samples.clear();
                 toErase.clear();
                 clusters.resize(k);
@@ -100,105 +138,87 @@ Nodo* Ciaccia_Patella(vector<Point> points){
                 }
             }
         }
-        // HASTA PASO 5 ESTAMOS JOYA!
-
-
-
-        // (Paso 6)
-        // Vamos calculando recursivamente, asignando los arboles.
-        // Para cada Fj
-        cout << "paso 6" << endl;
-        vector<Nodo *> hijos;
+        vector<Nodo *> hijos; 
+        cout << "Paso 6"<< endl;
         for(int i = 0; i< samples.size();i++){
-            //Arbol Tj
+            //Paso 6
             Nodo *hijo = Ciaccia_Patella(clusters[i]);
-            //Paso 7
-            cout << "Paso 7" << endl;
-            if((*hijo).entradas.size()< B/2){
+            hijos.push_back(hijo);
+            
+        }
+        //Paso 7
+        cout << "Paso 7" << endl;
+        vector<int> Borrar;
+        for(int i = 0; i< hijos.size(); i++){
+            if((hijos)[i]->entradas.size() < B/2){
                 //Borramos su raiz
-                cout << "Paso 7.1" << endl;
-                vector<Entry> raiz = (*hijo).entradas;
-                // hijo.raiz = NULL;
-                //Sacamos su punto de samples
-                cout << "Paso 7.2"<< endl;
-                samples.erase(samples.begin()+i);
-                //Trabajamos con los hijos2 de este hijo, obteniendo sus raices (que son parte de las entrys del hijo)
-                // y dejandolas en samples, agregando estos hijos2 como hijos.
-                cout << "Paso 7.3"<< endl;
-                for(int j = 0; j< raiz.size();j++){
-                    Nodo *hijo2 = raiz[j].hijos;
-                    if (hijo2 != NULL) { // Verificar si hijo2 no es NULL antes de acceder a él
-                        hijos.push_back(hijo2);
-                        samples.push_back(raiz[i].centro);
-                        //Revisar si sigo teniendo uno a uno.
-                    } else {
-                        // Nada
+                //Eliminamos pfj de F
+                //Agregamos sus hijos2 a hijos y se añaden sus puntos a F 
+                for (Entry e: (hijos[i])->entradas){
+                    if(e.hijos!= NULL){
+                        hijos.push_back(e.hijos);
+                        samples.push_back(e.centro);
                     }
-
                 }
-
-            }else{
-                hijos.insert(hijos.begin()+i,hijo);
+                Borrar.push_back(i);
             }
         }
+        cout << "Paso 7.2" << endl;
+        for(int k = Borrar.size() - 1; k >= 0; k--){
+            cout << "Paso 7.2.1" << endl;
+            samples.erase(samples.begin()+Borrar[k]);
+            cout << "Paso 7.2.2" << endl;
+            hijos.erase(hijos.begin() + Borrar[k]);
+        }
+
+        cout << "Paso 8" << endl;
         vector<Nodo *> Tprima;
+
+        cout<< "Paso 9 "<< endl;
         int i= 0;
         for(Nodo* hijo: hijos){
-            cout << "paso 9" << endl;
             // Paso 9
             if((*hijo).altura == h){
-                cout << "Caso 1" << endl;
                 Tprima.push_back(hijo);
             }else{
-                cout << "Caso 2" << endl;
-                //Borrar el punto de F.
-                vector<int> Posiciones;
-                samples.erase(samples.begin()+i);
-
-                vector<Entry> entrys = (*hijo).entradas;
-                // Para Cada Tj
-                for(int i = 0; i< entrys.size();i++){
-                    //Si el hijo tiene altura H lo agrego a T prima
-                    Nodo *hijo_2 =  entrys[i].hijos;
-                    int altura_hijo = 1;//hijo_2->altura;
-                    if(altura_hijo == h){
-                        Tprima.push_back(hijo_2);
-                        Posiciones.push_back(i);
+                cout << "Paso 9.1" << endl;
+                samples.erase(samples.begin() + i);
+                cout << "Paso 9.2"<< endl;
+                //Trabajamos con los hijos2 del hijo.
+                for(int j = 0; j< hijo->entradas.size() ;j++){
+                    Nodo *hijo2 = hijo->entradas[j].hijos;
+                    if((*hijo2).altura = h){
+                        Tprima.push_back(hijo2);
+                        cout << "Paso 9.3" << endl;
+                        samples.push_back(hijo->entradas[j].centro);
                     }
-                
-                }
-                for(int i = 0; i< Posiciones.size(); i++){
-                int posicion = Posiciones[i]; 
-                vector<Entry> entrada_m = (*Tprima[i]).entradas;
-                //Insertar pf1 prima en F
-                samples.push_back(entrys[i].centro);
-                (*hijo).entradas.erase((*hijo).entradas.begin()+i);
                 }
             }
             i++;
         }
+        cout << "Paso 10"<<endl;
+        Nodo* Tsup = new Nodo();
+        Tsup = Ciaccia_Patella(samples);
 
-
-        //Paso 10!!!!!!!!!
-        cout << "paso 10" << endl;
-        Nodo* Tsup = Ciaccia_Patella(samples);
-        //Paso 11
-        for(int i = 0; i<Tprima.size();i++){
-            Entry entrada =(*Tsup).entradas[i];
-            entrada.hijos = Tprima[i];
+        cout << "Paso 11" << endl;
+        for(Nodo *nodo: Tprima){
+            Link(nodo,Tsup);
         }
-        //Paso 12.
-        //SETEAR RADIOS!
-
-        return nodo;
-
         
+
+        cout << "Paso 12" << endl;
+        //Setear radios covertores
+
+        cout << "Paso 13" << endl;
+        //Se retorna el arbol
+        return Tsup;
+
 
     }
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 10));
+    set<Point> points = generatePoints(pow(2, 20));
     vector<Point> v(points.begin(), points.end());
     Nodo *nodo = Ciaccia_Patella(v);
     return 0;

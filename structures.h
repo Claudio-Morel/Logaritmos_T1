@@ -13,19 +13,22 @@ class Point{
     double y;
 
     bool operator<(const Point& other) const;
+
+    double distance(Point& other);
 };
 
 class Entry{
     public:
     Point centro;
     double radio;
-    Mtree *hijos;
+    Nodo *hijos = NULL;
 };
 
 class Nodo{
     public:
     int count;
     vector<Entry> entradas;
+    int altura = 1;
 
     void insertar(Entry e){
         entradas.push_back(e);
@@ -40,5 +43,6 @@ class Mtree {
     Nodo raiz;
     int altura = 1;
 };
+
 
 #endif

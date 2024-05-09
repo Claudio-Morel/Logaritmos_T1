@@ -10,6 +10,12 @@ bool Point::operator<(const Point& other) const{
         return y < other.y;
 };
 
+double Point::distance(Point& other) {
+    double dx = x - other.x;
+    double dy = y - other.y;
+    return sqrt(dx*dx + dy*dy);
+}
+
 set<Point> generatePoints(unsigned long long n) {
     set <Point> points;
     random_device rd;
