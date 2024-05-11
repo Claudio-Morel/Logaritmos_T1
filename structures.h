@@ -22,13 +22,14 @@ class Entry{
     public:
     Point centro;
     double radio;
-    Mtree *hijos;
+    Nodo *hijos = nullptr;
 };
 
 class Nodo{
     public:
     int count;
     vector<Entry> entradas;
+    int altura = 1;
 
     void insertar(Entry e){
         entradas.push_back(e);
@@ -42,20 +43,6 @@ class Mtree {
     unsigned long long n;
     Nodo raiz;
     int altura = 1;
-};
-
-class Cluster {
-    public:
-    Point medoide;
-    vector<Point> puntos;
-    double radio;
-    unsigned long long elementos = 0;
-
-    Cluster(Point p);
-
-    Cluster();
-
-    void insertar(Point p);
 };
 
 #endif
