@@ -56,7 +56,10 @@ void Link(vector<Nodo*> T, Nodo* Tsup){
             }
         }
     }
-
+    if(T.size() != Hojas.size()){
+        cout << T.size()<< ","<< Hojas.size() << endl;
+    }
+    
     // Iterar sobre cada nodo en el vector T
     for (Nodo* T_node : T) {
         Point punto = T_node->entradas[0].centro; // Suponiendo que siempre hay al menos una entrada en cada nodo T
@@ -64,24 +67,24 @@ void Link(vector<Nodo*> T, Nodo* Tsup){
         Entry* hoja_min = nullptr; // Inicializa a nullptr para evitar comportamiento indefinido
 
         // Encontrar la hoja más cercana en el vector E
+        int i = 0;
+        int posicion = 0;
         for (Entry* entry : Hojas) {
             double dist = punto.distance(entry->centro);
             if (dist < MinDist) {
                 MinDist = dist;
                 hoja_min = entry;
+                posicion = i;
             }
+            i++;
         }
 
         // Asignar T_node como hijo de hoja_min si hoja_min no es nullptr
         if (hoja_min != nullptr) {
             hoja_min->hijos = T_node;
+            Hojas.erase(Hojas.begin() + posicion);
         }
 
-    }
-    for(Entry *hoja: Hojas){
-        if(hoja->hijos== nullptr ){
-            cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-        }
     }
 }
 
@@ -265,7 +268,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
 }
 
 int main(){
-    set<Point> points = generatePoints(pow(2, 8));
+    set<Point> points = generatePoints(pow(2, 15));
     vector<Point> v(points.begin(), points.end());
     Nodo *raiz = new Nodo();
     raiz = Ciaccia_Patella(v);
@@ -278,23 +281,12 @@ int main(){
     while (!q.empty()){
         Nodo *n = q.front();
         q.pop();
-        for (Entry e : n->entradas){
+        for (const Entry& e : n->entradas){
             if (e.hijos != nullptr ){
                 nodos_internos++;
-                for (Entry e2 : e.hijos->entradas){
-                    if (e2.centro.distance(e.centro) > e.radio){
-                        errores++;
-                    }
-                    else{
-                        aciertos++;
-                    }
-                    if (e2.hijos != nullptr){
-                        q.push(e2.hijos);
-                    }
-                    else{
-                        nodos_externos++;
-                    }
-                }   
+                q.push(e.hijos);
+            } else {
+                nodos_externos++; // Incrementa el contador de nodos hoja
             }
         }
     }
@@ -302,5 +294,6 @@ int main(){
     cout << "Aciertos: " << aciertos << endl;
     cout << "Nodos internos: " << nodos_internos << endl;
     cout << "Nodos externos: " << nodos_externos << endl;
+    cout << "Altura arbol :" << ALT(raiz) << endl;
     return 0;
 }
