@@ -21,13 +21,14 @@ class Entry{
     public:
     Point centro;
     double radio;
-    Nodo *hijos;
+    Nodo *hijos = nullptr;
 };
 
 class Nodo{
     public:
     int count;
     vector<Entry> entradas;
+    int altura = 1;
 
     void insertar(Entry e){
         entradas.push_back(e);

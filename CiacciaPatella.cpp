@@ -6,12 +6,12 @@ using namespace std;
 #include<tuple>
 #include <chrono>
 
-#define B 4096
+int B = 4096/sizeof(Entry);
 #define h 1
 
 tuple<int,double> checkDistance(Point point, vector<Point> samples){
     double dist;
-    double minDist = 1;
+    double minDist = 2;
     int index;
     for (int i  = 0; i<samples.size(); i++){
         dist = pow(point.x - samples[i].x, 2) + pow(point.y - samples[i].y, 2);
@@ -25,23 +25,20 @@ tuple<int,double> checkDistance(Point point, vector<Point> samples){
 }
 
 
-Mtree Ciaccia_Patella(vector<Point> points){
+Nodo* Ciaccia_Patella(vector<Point> points){
     unsigned long long n = points.size();
     random_device rd;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     mt19937 gen(seed);
-    Mtree mtree;
+    Nodo *nodo = new Nodo();
     if(n <= B){
         Entry entry;
-        Nodo nodo;
-        nodo.entradas;
+        (*nodo).entradas;
         for (int i = 0; i < n; i++){
             entry.centro = points[i];
-            nodo.insertar(entry);
+            (*nodo).insertar(entry);
         }
-        mtree.raiz = nodo;
-        mtree.altura = 1;
-        return mtree;
+        return nodo;
     }
     else{
         //Calculamos k
@@ -55,7 +52,6 @@ Mtree Ciaccia_Patella(vector<Point> points){
             for (int i = 0; i<k; i++){
                 unsigned long long indice = dis(gen);
                 samples.push_back(points[indice]);
-                points.erase(points.begin() + indice);
                 n--;
             }
             // Asociamos todos los puntos a su sample más cercano.
@@ -96,9 +92,6 @@ Mtree Ciaccia_Patella(vector<Point> points){
             if (clusters.size() > 1){
                 break;
             }else {
-                for(Point point: samples){
-                    points.push_back(point);
-                }
                 samples.clear();
                 toErase.clear();
                 clusters.resize(k);
@@ -107,62 +100,97 @@ Mtree Ciaccia_Patella(vector<Point> points){
                 }
             }
         }
+        // HASTA PASO 5 ESTAMOS JOYA!
+
+
+
         // (Paso 6)
         // Vamos calculando recursivamente, asignando los arboles.
         // Para cada Fj
-        vector<Mtree> Tprima;
+        cout << "paso 6" << endl;
+        vector<Nodo *> hijos;
         for(int i = 0; i< samples.size();i++){
             //Arbol Tj
-            Mtree hijo = Ciaccia_Patella(clusters[i]);
-            //Paso 8
-            // Paso 9
-            if((hijo).altura == h){
-                Tprima.push_back(mtree);
+            Nodo *hijo = Ciaccia_Patella(clusters[i]);
+            //Paso 7
+            cout << "Paso 7" << endl;
+            if((*hijo).entradas.size()< B/2){
+                //Borramos su raiz
+                cout << "Paso 7.1" << endl;
+                vector<Entry> raiz = (*hijo).entradas;
+                // hijo.raiz = NULL;
+                //Sacamos su punto de samples
+                cout << "Paso 7.2"<< endl;
+                samples.erase(samples.begin()+i);
+                //Trabajamos con los hijos2 de este hijo, obteniendo sus raices (que son parte de las entrys del hijo)
+                // y dejandolas en samples, agregando estos hijos2 como hijos.
+                cout << "Paso 7.3"<< endl;
+                for(int j = 0; j< raiz.size();j++){
+                    Nodo *hijo2 = raiz[j].hijos;
+                    if (hijo2 != NULL) { // Verificar si hijo2 no es NULL antes de acceder a él
+                        hijos.push_back(hijo2);
+                        samples.push_back(raiz[i].centro);
+                        //Revisar si sigo teniendo uno a uno.
+                    } else {
+                        // Nada
+                    }
+
+                }
+
             }else{
+                hijos.insert(hijos.begin()+i,hijo);
+            }
+        }
+        vector<Nodo *> Tprima;
+        int i= 0;
+        for(Nodo* hijo: hijos){
+            cout << "paso 9" << endl;
+            // Paso 9
+            if((*hijo).altura == h){
+                cout << "Caso 1" << endl;
+                Tprima.push_back(hijo);
+            }else{
+                cout << "Caso 2" << endl;
                 //Borrar el punto de F.
                 vector<int> Posiciones;
                 samples.erase(samples.begin()+i);
-                Nodo raiz = hijo.raiz;
-                vector<Entry> entrys = raiz.entradas;
+
+                vector<Entry> entrys = (*hijo).entradas;
                 // Para Cada Tj
                 for(int i = 0; i< entrys.size();i++){
                     //Si el hijo tiene altura H lo agrego a T prima
-                    Mtree *hijo_2 =  entrys[i].hijos;
+                    Nodo *hijo_2 =  entrys[i].hijos;
                     int altura_hijo = 1;//hijo_2->altura;
                     if(altura_hijo == h){
-                        Tprima.push_back(*hijo_2);
+                        Tprima.push_back(hijo_2);
                         Posiciones.push_back(i);
                     }
                 
                 }
                 for(int i = 0; i< Posiciones.size(); i++){
                 int posicion = Posiciones[i]; 
-                vector<Entry> entrada_m = Tprima[i].raiz.entradas;
+                vector<Entry> entrada_m = (*Tprima[i]).entradas;
                 //Insertar pf1 prima en F
                 samples.push_back(entrys[i].centro);
-                mtree.raiz.entradas.erase(mtree.raiz.entradas.begin()+i);
+                (*hijo).entradas.erase((*hijo).entradas.begin()+i);
                 }
             }
+            i++;
         }
 
-        // PASO 7!!!!!!
-        if(samples.size() < B/2 ){
-            //Quitamos raiz.
 
-        }
-
-        //Paso 10!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Mtree Tsup = Ciaccia_Patella(samples);
+        //Paso 10!!!!!!!!!
+        cout << "paso 10" << endl;
+        Nodo* Tsup = Ciaccia_Patella(samples);
         //Paso 11
         for(int i = 0; i<Tprima.size();i++){
-            cout << Tprima.size() << endl;
-            Entry entrada =Tsup.raiz.entradas[i];
-            entrada.hijos = &Tprima[i];
+            Entry entrada =(*Tsup).entradas[i];
+            entrada.hijos = Tprima[i];
         }
         //Paso 12.
         //SETEAR RADIOS!
 
-        return mtree;
+        return nodo;
 
         
 
@@ -170,9 +198,10 @@ Mtree Ciaccia_Patella(vector<Point> points){
 }
 
 int main(){
+    set<Point> points = generatePoints(pow(2, 10));
     set<Point> points = generatePoints(pow(2, 19));
     cout << sizeof(Point)<< endl;
     vector<Point> v(points.begin(), points.end());
-    Mtree mtree = Ciaccia_Patella(v);
+    Nodo *nodo = Ciaccia_Patella(v);
     return 0;
 }
