@@ -21,7 +21,7 @@ class Entry{
     public:
     Point centro;
     double radio;
-    Nodo *hijos = NULL;
+    Nodo *hijos = nullptr;
 };
 
 class Nodo{

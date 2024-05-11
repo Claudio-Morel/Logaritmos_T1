@@ -13,7 +13,7 @@ void Link(vector<Nodo*> T, Nodo* Tsup) {
         Nodo* nodo = q.front();
         q.pop();
         for (Entry& entrada : nodo->entradas) {
-            if (entrada.hijos != NULL) {
+            if (entrada.hijos != nullptr) {
                 q.push(entrada.hijos);
             } else {
                 Hojas.push_back(&entrada); // Agregar entrada hoja al vector E
@@ -50,7 +50,7 @@ int ALT(Nodo* nodo) {
     int maxAlt = 0;
     for (Entry entrada : (*nodo).entradas) {
         int altura;
-        if (entrada.hijos == NULL) {
+        if (entrada.hijos == nullptr) {
             altura = 1;
         } else {
             altura = 1 + ALT(entrada.hijos);
@@ -62,42 +62,68 @@ int ALT(Nodo* nodo) {
     return maxAlt;
 }
 
+void setRadio(Nodo * T){
+    if(T == nullptr){
+        return;
+    }
+    //Caso de que no sea hoja
+    //Primero seteo radio de todos sus hijos
+    for(Entry &entrada: (T->entradas)){
+        if(entrada.hijos == nullptr){
+            entrada.radio = 0;
+        }else{
+            double maxDist = 0;
+            setRadio(entrada.hijos);
+            for(Entry &entrada_h : entrada.hijos->entradas){
+                double dist = entrada.centro.distance(entrada_h.centro) + entrada_h.radio;
+                if(dist > maxDist){
+                    maxDist = dist;
+                }
+            }
+            entrada.radio = maxDist;
+
+        }
+    }
+}
+
 
 
 
 
 int main() {
-    // Crear el árbol Tsup con dos hojas
-    Nodo Tsup;
-    Entry hoja1, hoja2;
-    hoja1.centro.x = 0.3;
-    hoja1.centro.y = 0.4;
-    hoja2.centro.x = 0.6;
-    hoja2.centro.y = 0.7;
-    Tsup.entradas.push_back(hoja1);
-    Tsup.entradas.push_back(hoja2);
+    // Caso de prueba 1: Árbol con un solo nodo
+    Nodo singleNode;
+    Entry singleEntry;
+    singleEntry.centro.x = 0.5;
+    singleEntry.centro.y = 0.5;
+    singleNode.entradas.push_back(singleEntry);
+    setRadio(&singleNode);
+    cout << "Radio para el nodo único: " << singleNode.entradas[0].radio << endl;
 
-    // Crear el vector T con dos nodos
-    vector<Nodo*> T;
-    Nodo node1, node2;
-    Entry entry1, entry2;
-    entry1.centro.x = 0.2;
-    entry1.centro.y = 0.5;
-    entry2.centro.x = 0.8;
-    entry2.centro.y = 0.9;
-    node1.entradas.push_back(entry1);
-    node2.entradas.push_back(entry2);
-    T.push_back(&node1);
-    T.push_back(&node2);
+    // Caso de prueba 2: Árbol con varios niveles
+    Nodo root;
+    Entry rootEntry;
+    rootEntry.centro.x = 0.5;
+    rootEntry.centro.y = 0.5;
+    root.entradas.push_back(rootEntry);
+    Nodo child1, child2;
+    Entry childEntry1, childEntry2;
+    childEntry1.centro.x = 0.3;
+    childEntry1.centro.y = 0.3;
+    childEntry2.centro.x = 0.7;
+    childEntry2.centro.y = 0.7;
+    child1.entradas.push_back(childEntry1);
+    child2.entradas.push_back(childEntry2);
+    root.entradas[0].hijos = &child1;
+    child1.entradas[0].hijos = &child2;
+    setRadio(&root);
+    cout << "Radio para el nodo raíz: " << root.entradas[0].radio << endl;
+    cout << "Radio para el primer hijo: " << root.entradas[0].hijos->entradas[0].radio << endl;
 
-    // Enlazar los nodos del vector T con las hojas del árbol Tsup
-    Link(T, &Tsup);
-
-    cout << "ALT :"<< ALT(&Tsup)<< endl;
-
-
+    
     return 0;
 }
+
 
 
 
