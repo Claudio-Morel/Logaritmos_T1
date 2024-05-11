@@ -1,13 +1,14 @@
 #include <iostream>
 #include "structures.h"
-#include "points.cpp"
+#include "SextonSwinbank.cpp"
 #include <algorithm>
 using namespace std;
 #include<tuple>
 #include <chrono>
 #include <queue>
 
-int B = 4096/sizeof(Entry);
+extern int B;
+extern vector<Nodo *> toDelete;
 
 int ALT(Nodo* nodo) {
     int maxAlt = 0;
@@ -55,9 +56,6 @@ void Link(vector<Nodo*> T, Nodo* Tsup){
                 Hojas.push_back(&entrada); // Agregar entrada hoja al vector E
             }
         }
-    }
-    if(T.size() != Hojas.size()){
-        cout << T.size()<< ","<< Hojas.size() << endl;
     }
     
     // Iterar sobre cada nodo en el vector T
@@ -118,6 +116,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
     unsigned seed = chrono::system_clock::now().time_since_epoch().count();
     mt19937 gen(seed);
     Nodo *nodo = new Nodo();
+    toDelete.push_back(nodo);
     if(n <= B){
         Entry entry;
         (*nodo).entradas;
@@ -190,6 +189,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
         for(int i = 0; i< samples.size();i++){
             //Paso 6
             Nodo * hijo = new Nodo();
+            toDelete.push_back(hijo);
             hijo = Ciaccia_Patella(clusters[i]);
             hijos.push_back(hijo);
             
@@ -255,6 +255,7 @@ Nodo* Ciaccia_Patella(vector<Point> points){
             }
         }
         Nodo* Tsup = new Nodo();
+        toDelete.push_back(Tsup);
         Tsup = Ciaccia_Patella(samples);
         Link(Tprima,Tsup);
         
@@ -265,35 +266,4 @@ Nodo* Ciaccia_Patella(vector<Point> points){
 
 
     }
-}
-
-int main(){
-    set<Point> points = generatePoints(pow(2, 15));
-    vector<Point> v(points.begin(), points.end());
-    Nodo *raiz = new Nodo();
-    raiz = Ciaccia_Patella(v);
-    queue<Nodo*> q;
-    q.push(raiz);
-    int errores = 0;
-    int aciertos = 0;
-    int nodos_internos = 1;
-    int nodos_externos = 0;
-    while (!q.empty()){
-        Nodo *n = q.front();
-        q.pop();
-        for (const Entry& e : n->entradas){
-            if (e.hijos != nullptr ){
-                nodos_internos++;
-                q.push(e.hijos);
-            } else {
-                nodos_externos++; // Incrementa el contador de nodos hoja
-            }
-        }
-    }
-    cout << "Errores: " << errores << endl;
-    cout << "Aciertos: " << aciertos << endl;
-    cout << "Nodos internos: " << nodos_internos << endl;
-    cout << "Nodos externos: " << nodos_externos << endl;
-    cout << "Altura arbol :" << ALT(raiz) << endl;
-    return 0;
 }

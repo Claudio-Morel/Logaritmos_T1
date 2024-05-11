@@ -2,19 +2,12 @@
 #include <set>
 #include "structures.h"
 using namespace std;
-#include "structures.h"
 
 bool Point::operator<(const Point& other) const{
         if (x < other.x) return true;
         if (x > other.x) return false;
         return y < other.y;
 };
-
-double Point::distance(Point& other) {
-    double dx = x - other.x;
-    double dy = y - other.y;
-    return sqrt(dx*dx + dy*dy);
-}
 
 set<Point> generatePoints(unsigned long long n) {
     set <Point> points;

@@ -1,4 +1,3 @@
-#include "SextonSwinbank.cpp"
 #include "CiacciaPatella.cpp"
 #include <fstream>
 
@@ -23,7 +22,7 @@ void ssExperiment(vector<Point>&Cin, vector<Query> querys, unsigned long long si
 
 void cpExperiment(vector<Point>&Cin, vector<Query> querys, unsigned long long size){
     ofstream file;
-    file.open("results/ssExperiment" + to_string(size) + ".txt");
+    file.open("results/cpExperiment" + to_string(size) + ".txt");
     auto start = chrono::high_resolution_clock::now();
     Mtree mtree = Mtree();
     mtree.raiz = Ciaccia_Patella(Cin);
@@ -42,17 +41,23 @@ int main(){
     vector <Nodo *> toDelete;
     vector <Point> Cin;
     vector <Query> querys;
-    for (int i = 10; i < 21; i++){
+    int start, end;
+    cout << "Ingrese los valores de inicio y fin de la experimentación:" << endl; 
+    cout << "Inicio: ";
+    cin >> start;
+    cout  << "Fin: ";
+    cin >> end;
+    for (int i = start; i < end + 1; i++){
         set<Point> puntos = generatePoints(pow(2, i));
         Cin = vector<Point>(puntos.begin(), puntos.end());
         querys = QueryGen(100);
+        cout << "Generando el árbol con SS usando " + to_string(pow(2, i)) + " puntos." << endl;
         ssExperiment(Cin, querys, pow(2, i));
+        cout << "Generando el árbol con SS usando " + to_string(pow(2, i)) + " puntos." << endl;
+        cpExperiment(Cin, querys, pow(2, i));
         for (Nodo *n : toDelete){
             delete n;
         }
-    }
-    for (Nodo *n : toDelete){
-        delete n;
     }
     return 0;
 }

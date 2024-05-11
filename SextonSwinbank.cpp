@@ -135,20 +135,16 @@ Entry OutputInterna(vector<Entry> &Cmra){
 }
 
 Nodo *SextonSwinbank(vector<Point> &Cin){
-    cout << "Creando el arbol con " << Cin.size() << " puntos..." << endl;
     if (Cin.size()< B){
         Entry toReturn = OutputHoja(Cin);
         return toReturn.hijos;
     }
     vector<Cluster> Cout = ClusterGen(Cin);
-    cout << "Clusters generados: " << Cout.size() << endl;
     vector<Entry> C;
     for (Cluster &c : Cout) {
         C.push_back(OutputHojaCluster(c));
     }
     while (C.size() > B) {
-        cout << "Merging clusters..." << endl;
-        cout << "Clusters restantes: " << C.size() << endl;
         vector<Point> Cin2;
         for (Entry e : C) {
             Cin2.push_back(e.centro);
