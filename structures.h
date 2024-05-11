@@ -11,7 +11,6 @@ class Point{
     public:
     double x;
     double y;
-    double norma = -1;
 
     bool operator<(const Point& other) const;
 
@@ -65,6 +64,8 @@ class Query{
     Point punto;
     double radio;
     vector <Point> resultado;
+    int ios = 0;
+    double time;
 };
 
 #endif

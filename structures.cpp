@@ -1,5 +1,6 @@
 #include "structures.h"
 #include <cmath>
+using namespace std;
 
 double Point::distance(Point& other) {
     double dx = x - other.x;
@@ -8,30 +9,31 @@ double Point::distance(Point& other) {
 }
 
 void Cluster::insertar(Point p) {
-    puntos.push_back(p);
-    count++;
+    this->puntos.push_back(p);
+    this->count++;
 }
 
 void Cluster::actualizarMedoide(){
-    double dist;
-    for (Point &punto : puntos) {
-        double maxDist = -1;
-        for (Point &punto2 : puntos) {
-            dist = punto.distance(punto2);
+    double maxDist = -1;
+    radio = 3;
+    for (Point p : puntos){
+        maxDist = -1;
+        for (Point p2 : puntos){
+            double dist = p.distance(p2);
             if (maxDist < dist){
                 maxDist = dist;
             }
         }
-        if ( maxDist < radio) {
+        if (maxDist < radio){
             radio = maxDist;
-            medoide = punto;
+            medoide = p;
         }
     }
 }
 
 Cluster::Cluster() {;
     count = 0;
-    radio = 0;
+    radio = 3;
 }
 
 Cluster::Cluster(Point p) {

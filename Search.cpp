@@ -3,6 +3,7 @@
 #include <iostream>
 #include <set>
 #include <queue>
+#include <chrono>
 using namespace std;
 
 
@@ -23,12 +24,14 @@ void Search(Query *pQuery, Mtree mtree){
     Nodo *raiz = mtree.raiz;
     queue<Nodo*> q;
     q.push(raiz);
+    auto start = chrono::high_resolution_clock::now();
     while (!q.empty()){
         Nodo *n = q.front();
+        pQuery->ios++;
         q.pop();
         for (Entry e : n->entradas){
             if (e.hijos != nullptr ){
-                if ((*pQuery).punto.distance(e.centro) < 2){
+                if ((*pQuery).punto.distance(e.centro) < (*pQuery).radio + e.radio){
                     q.push(e.hijos);
                 }
             }
@@ -39,4 +42,7 @@ void Search(Query *pQuery, Mtree mtree){
             }
         }
     }
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+    pQuery->time = duration.count();
 }

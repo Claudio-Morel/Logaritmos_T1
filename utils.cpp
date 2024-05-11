@@ -3,6 +3,7 @@
 #include "structures.h"
 #include <cmath>
 #include <iostream>
+#include <algorithm> // Include the <algorithm> header file
 
 vector<Cluster> minMaxSplit(Cluster &Cunion){
     double minRadio = 2;
@@ -58,37 +59,6 @@ vector<Cluster> minMaxSplit(Cluster &Cunion){
     return clusters;
 }
 
-/* int main(){
-    Point p = Point{0.5,0.5};
-    Cluster c = Cluster(p);
-    c.insertar(Point{0.1,0.1});
-    c.insertar(Point{0.2,0.2});
-    c.insertar(Point{0.3,0.3});
-    c.insertar(Point{0.4,0.4});
-    c.insertar(Point{0.5,0.5}); 
-    c.insertar(Point{0.6,0.6});
-    c.insertar(Point{0.7,0.7});
-    c.insertar(Point{0.8,0.8});
-    c.insertar(Point{0.9,0.9});
-    c.insertar(Point{1,1});
-    c.actualizarMedoide();
-    cout << "Puntos cluster inicial:" << endl;
-    for (Point p : c.puntos){
-        cout << p.x << " " << p.y << endl;
-    }
-    vector <Cluster> clusters = minMaxSplit(c);
-    cout << "Clusters resultantes:" << endl;
-    for (Cluster c1 : clusters){
-        cout << "medioide: " << c1.medoide.x << " " << c1.medoide.y << endl;
-        for (Point p : c1.puntos){
-            cout << p.x << " " << p.y << endl;
-        }
-    }
-
-
-    return 0;
-} */
-
 tuple<unsigned long long, unsigned long long> twoClosestPoints(vector<Cluster>& clusters){
     double minDist = 2;
     tuple <unsigned long long, unsigned long long> indices;
@@ -107,3 +77,111 @@ tuple<unsigned long long, unsigned long long> twoClosestPoints(vector<Cluster>& 
     return indices;
 }
 
+bool compareX(const Point &a, const Point &b) {
+    return (a.x < b.x); 
+} 
+ 
+bool compareY(const Point &a, const Point &b) { 
+    return (a.y < b.y); 
+} 
+
+double min(double x, double y) { 
+	if (x < y) 
+        return x;
+    return y;
+} 
+
+tuple <double, Point, Point> stripClosest(Point strip[], int size, double d) { 
+	double min = d; 
+    Point a,b; 
+    sort(strip, strip + size, compareY);
+	for (int i = 0; i < size; ++i) {
+		for (int j = i+1; j < size && (strip[j].y - strip[i].y) < min; ++j) {
+			if (strip[i].distance(strip[j]) < min) {
+				min = strip[i].distance(strip[j]); 
+                a = strip[i];
+                b = strip[j];
+            }
+        }
+    }
+	return make_tuple(min,a,b); 
+} 
+
+tuple <double, Point, Point> bruteForce(Point P[], int n) { 
+    double min = 3; 
+    Point a,b;
+    for (int i = 0; i < n; ++i) {
+        for (int j = i+1; j < n; ++j) {
+            if (P[i].distance(P[j]) < min){ 
+                min = P[i].distance(P[j]); 
+                a = P[i];
+                b = P[j];
+            }
+        }
+    }
+    return make_tuple(min,a,b);
+} 
+
+tuple<double, Point, Point> closestUtil(Point P[], int n) { 
+	if (n <= 3) 
+		return bruteForce(P, n);  
+	int mid = n/2;
+	Point midPoint = P[mid]; 
+    Point a,b;
+	tuple <double, Point, Point> dl = closestUtil(P, mid); 
+	tuple <double, Point, Point> dr = closestUtil(P + mid, n - mid); 
+    double d;
+    if ((get<0>(dl)) < (get<0>(dr))){
+        d = get<0>(dl);
+        a = get<1>(dl);
+        b = get<2>(dl);
+    } else{
+        d = get<0>(dr);
+        a = get<1>(dr);
+        b = get<2>(dr);
+    }
+	int j = 0; 
+	for (int i = 0; i < n; i++){
+		if (abs(P[i].x - midPoint.x) < d) {
+            j++; 
+        }
+    }
+    Point strip[j];
+    int k = 0;
+    for (int i = 0; i < n; i++){
+		if (abs(P[i].x - midPoint.x) < d) {
+			strip[k] = P[i];
+            k++;
+        }
+    }
+    tuple <double, Point, Point> other = stripClosest(strip, j, d);
+    //delete [] strip;
+    if (get<0>(other) < d){
+        return other;
+    }
+    return make_tuple(d,a,b);
+    
+} 
+
+
+tuple <unsigned long long, unsigned long long> twoClosestPoints2(vector<Cluster> &Cin) {
+    Point *P = new Point[Cin.size()];
+    for (int i = 0; i < Cin.size(); i++){  
+        P[i] = (Cin[i]).medoide;
+    }
+    sort(P, P + Cin.size(), compareX);
+    tuple <double, Point, Point> min = closestUtil(P, Cin.size());
+    Point a = get<1>(min);
+    Point b = get<2>(min);
+    tuple <unsigned long long, unsigned long long> indices;
+    for (unsigned long long i = 0; i<Cin.size(); i++){
+        if (a.x == Cin[i].medoide.x && a.y == Cin[i].medoide.y){
+            get<0>(indices) = i;
+        }
+        if (b.x == Cin[i].medoide.x && b.y == Cin[i].medoide.y){
+            get<1>(indices) = i;
+        }
+    }
+    delete [] P;
+    return indices;
+}
