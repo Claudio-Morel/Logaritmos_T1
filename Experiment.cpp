@@ -42,7 +42,7 @@ int main(){
     vector <Point> Cin;
     vector <Query> querys;
     int start, end;
-    cout << "Ingrese los valores de inicio y fin de la experimentación:" << endl; 
+    cout << "Ingrese los valores de inicio y fin de la experimentacion:" << endl; 
     cout << "Inicio: ";
     cin >> start;
     cout  << "Fin: ";
@@ -51,9 +51,11 @@ int main(){
         set<Point> puntos = generatePoints(pow(2, i));
         Cin = vector<Point>(puntos.begin(), puntos.end());
         querys = QueryGen(100);
-        cout << "Generando el árbol con SS usando " + to_string(pow(2, i)) + " puntos." << endl;
-        ssExperiment(Cin, querys, pow(2, i));
-        cout << "Generando el árbol con SS usando " + to_string(pow(2, i)) + " puntos." << endl;
+        if (i < 19){
+            cout << "Generando el arbol con SS usando " + to_string(pow(2, i)) + " puntos." << endl;
+            ssExperiment(Cin, querys, pow(2, i));
+        }
+        cout << "Generando el arbol con CP usando " + to_string((pow(2, i))) + " puntos." << endl;
         cpExperiment(Cin, querys, pow(2, i));
         for (Nodo *n : toDelete){
             delete n;
