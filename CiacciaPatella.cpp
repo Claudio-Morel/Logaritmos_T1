@@ -267,11 +267,3 @@ Nodo* Ciaccia_Patella(vector<Point> points){
 
     }
 }
-
-int main(){
-    set <Point> puntos = generatePoints(pow(2, 19));
-    vector<Point> Cin(puntos.begin(), puntos.end());
-    Mtree mtree = Mtree();
-    mtree.raiz = Ciaccia_Patella(Cin);
-    return 0;
-}

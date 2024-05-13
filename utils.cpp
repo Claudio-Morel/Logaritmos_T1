@@ -1,9 +1,8 @@
-//minMaxSplitPolicy
 #include "structures.cpp"
 #include "structures.h"
 #include <cmath>
 #include <iostream>
-#include <algorithm> // Include the <algorithm> header file
+#include <algorithm>
 
 vector<Cluster> minMaxSplit(Cluster &Cunion){
     double minRadio = 2;
@@ -155,7 +154,6 @@ tuple<double, Point, Point> closestUtil(Point P[], int n) {
         }
     }
     tuple <double, Point, Point> other = stripClosest(strip, j, d);
-    //delete [] strip;
     if (get<0>(other) < d){
         return other;
     }

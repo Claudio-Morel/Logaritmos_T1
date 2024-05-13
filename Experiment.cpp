@@ -37,7 +37,7 @@ void cpExperiment(vector<Point>&Cin, vector<Query> querys, unsigned long long si
     }
 }
 
-/* int main(){
+int main(){
     vector <Nodo *> toDelete;
     vector <Point> Cin;
     vector <Query> querys;
@@ -62,4 +62,4 @@ void cpExperiment(vector<Point>&Cin, vector<Query> querys, unsigned long long si
         }
     }
     return 0;
-} */
+}
